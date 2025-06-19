@@ -43,7 +43,7 @@ public class UserService {
 
     public void addFriends(Long userId, Long friendId) {
         User user = userStorage.find(userId);
-        User friend = userStorage.find(friendId);
+        User friend = userStorage.find(friendId); // проверка существования
         user.getFriends().add(friendId);
         friend.getFriends().add(userId);
         userStorage.amend(user);
