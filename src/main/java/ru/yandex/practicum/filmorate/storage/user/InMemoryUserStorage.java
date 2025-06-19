@@ -1,11 +1,8 @@
 package ru.yandex.practicum.filmorate.storage.user;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
-
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -13,7 +10,6 @@ import java.util.stream.Collectors;
 public class InMemoryUserStorage implements UserStorage {
     private final HashMap<Long, User> users = new HashMap<>();
     private Long id = 1L;
-    private static final Logger log = LoggerFactory.getLogger(InMemoryUserStorage.class);
     private static final String WRONG_ID = "неверный номер ID";
 
     @Override

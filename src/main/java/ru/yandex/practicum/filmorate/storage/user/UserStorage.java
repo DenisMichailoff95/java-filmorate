@@ -18,3 +18,4 @@ public interface UserStorage {
 
     User find(Long id);
 }
+

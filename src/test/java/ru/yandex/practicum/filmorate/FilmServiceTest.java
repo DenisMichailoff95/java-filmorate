@@ -2,30 +2,40 @@ package ru.yandex.practicum.filmorate;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.service.UserService;
 import ru.yandex.practicum.filmorate.storage.film.InMemoryFilmStorage;
 
 import java.time.LocalDate;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.when;
 
 class FilmServiceTest {
     private FilmService filmService;
+    private UserService userService;
     private Film testFilm;
 
     @BeforeEach
     void setUp() {
-        filmService = new FilmService(new InMemoryFilmStorage());
+        userService = Mockito.mock(UserService.class);
+        filmService = new FilmService(new InMemoryFilmStorage(), userService);
 
         testFilm = new Film();
         testFilm.setName("Test Film");
         testFilm.setDescription("Test Description");
         testFilm.setReleaseDate(LocalDate.of(2000, 1, 1));
         testFilm.setDuration(120);
+
+        // Мокируем вызовы UserService
+        when(userService.getUserById(anyLong())).thenReturn(new User());
     }
 
     @Test
@@ -83,7 +93,6 @@ class FilmServiceTest {
         assertEquals(2, films.size());
     }
 
-    // Новые тесты для функциональности лайков
     @Test
     void addLike_ShouldAddLikeToFilm() {
         Film createdFilm = filmService.createFilm(testFilm);
@@ -95,9 +104,7 @@ class FilmServiceTest {
 
     @Test
     void addLike_ShouldThrowException_WhenFilmNotFound() {
-        Long nonExistentFilmId = 999L; // effectively final
-        Long userId = 1L; // effectively final
-        assertThrows(NotFoundException.class, () -> filmService.addLike(nonExistentFilmId, userId));
+        assertThrows(NotFoundException.class, () -> filmService.addLike(999L, 1L));
     }
 
     @Test
@@ -112,10 +119,7 @@ class FilmServiceTest {
     @Test
     void deleteLike_ShouldThrowException_WhenLikeNotFound() {
         Film createdFilm = filmService.createFilm(testFilm);
-        Long filmId = createdFilm.getId(); // effectively final
-        Long userId = 1L; // effectively final
-
-        assertThrows(NotFoundException.class, () -> filmService.deleteLike(filmId, userId));
+        assertThrows(NotFoundException.class, () -> filmService.deleteLike(createdFilm.getId(), 1L));
     }
 
     @Test
@@ -126,14 +130,11 @@ class FilmServiceTest {
         film2.setName("Film 2");
         film2.setReleaseDate(LocalDate.of(2001, 1, 1));
         film2.setDuration(90);
-        Film createdFilm2 = filmService.createFilm(film2); // effectively final
+        Film createdFilm2 = filmService.createFilm(film2);
 
-        Long userId1 = 1L; // effectively final
-        Long userId2 = 2L; // effectively final
-
-        filmService.addLike(film1.getId(), userId1);
-        filmService.addLike(film1.getId(), userId2);
-        filmService.addLike(createdFilm2.getId(), userId1);
+        filmService.addLike(film1.getId(), 1L);
+        filmService.addLike(film1.getId(), 2L);
+        filmService.addLike(createdFilm2.getId(), 1L);
 
         List<Film> popularFilms = filmService.getPopularFilms(1);
         assertEquals(1, popularFilms.size());

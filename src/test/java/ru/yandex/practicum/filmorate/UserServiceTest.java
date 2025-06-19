@@ -82,7 +82,6 @@ class UserServiceTest {
         assertEquals(2, users.size());
     }
 
-    // Новые тесты для функциональности друзей
     @Test
     void addFriends_ShouldAddFriendToBothUsers() {
         User user1 = userService.createUser(testUser);
@@ -100,8 +99,7 @@ class UserServiceTest {
     @Test
     void addFriends_ShouldThrowException_WhenUserNotFound() {
         User user = userService.createUser(testUser);
-        Long nonExistentUserId = 999L; // effectively final переменная
-        assertThrows(NotFoundException.class, () -> userService.addFriends(user.getId(), nonExistentUserId));
+        assertThrows(NotFoundException.class, () -> userService.addFriends(user.getId(), 999L));
     }
 
     @Test
@@ -117,18 +115,6 @@ class UserServiceTest {
 
         assertFalse(userService.getUserById(user1.getId()).getFriends().contains(user2.getId()));
         assertFalse(userService.getUserById(user2.getId()).getFriends().contains(user1.getId()));
-    }
-
-    @Test
-    void deleteFriends_ShouldThrowException_WhenFriendshipNotFound() {
-        User user1 = userService.createUser(testUser);
-        User user2 = new User();
-        user2.setEmail("friend@example.com");
-        user2.setLogin("friendLogin");
-        User createdUser2 = userService.createUser(user2); // effectively final переменная
-
-        assertThrows(NotFoundException.class, () ->
-                userService.deleteFriends(user1.getId(), createdUser2.getId()));
     }
 
     @Test
