@@ -2,9 +2,10 @@ package ru.yandex.practicum.filmorate;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import ru.yandex.practicum.filmorate.controller.UserService;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.UserService;
+import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -17,7 +18,7 @@ class UserServiceTest {
 
     @BeforeEach
     void setUp() {
-        userService = new UserService();
+        userService = new UserService(new InMemoryUserStorage());
 
         testUser = new User();
         testUser.setEmail("test@example.com");
@@ -79,5 +80,105 @@ class UserServiceTest {
         List<User> users = userService.getAllUsers();
 
         assertEquals(2, users.size());
+    }
+
+    // Новые тесты для функциональности друзей
+    @Test
+    void addFriends_ShouldAddFriendToBothUsers() {
+        User user1 = userService.createUser(testUser);
+        User user2 = new User();
+        user2.setEmail("friend@example.com");
+        user2.setLogin("friendLogin");
+        user2 = userService.createUser(user2);
+
+        userService.addFriends(user1.getId(), user2.getId());
+
+        assertTrue(userService.getUserById(user1.getId()).getFriends().contains(user2.getId()));
+        assertTrue(userService.getUserById(user2.getId()).getFriends().contains(user1.getId()));
+    }
+
+    @Test
+    void addFriends_ShouldThrowException_WhenUserNotFound() {
+        User user = userService.createUser(testUser);
+        Long nonExistentUserId = 999L; // effectively final переменная
+        assertThrows(NotFoundException.class, () -> userService.addFriends(user.getId(), nonExistentUserId));
+    }
+
+    @Test
+    void deleteFriends_ShouldRemoveFriendFromBothUsers() {
+        User user1 = userService.createUser(testUser);
+        User user2 = new User();
+        user2.setEmail("friend@example.com");
+        user2.setLogin("friendLogin");
+        user2 = userService.createUser(user2);
+
+        userService.addFriends(user1.getId(), user2.getId());
+        userService.deleteFriends(user1.getId(), user2.getId());
+
+        assertFalse(userService.getUserById(user1.getId()).getFriends().contains(user2.getId()));
+        assertFalse(userService.getUserById(user2.getId()).getFriends().contains(user1.getId()));
+    }
+
+    @Test
+    void deleteFriends_ShouldThrowException_WhenFriendshipNotFound() {
+        User user1 = userService.createUser(testUser);
+        User user2 = new User();
+        user2.setEmail("friend@example.com");
+        user2.setLogin("friendLogin");
+        User createdUser2 = userService.createUser(user2); // effectively final переменная
+
+        assertThrows(NotFoundException.class, () ->
+                userService.deleteFriends(user1.getId(), createdUser2.getId()));
+    }
+
+    @Test
+    void getFriends_ShouldReturnUserFriends() {
+        User user = userService.createUser(testUser);
+        User friend1 = new User();
+        friend1.setEmail("friend1@example.com");
+        friend1.setLogin("friend1Login");
+        friend1 = userService.createUser(friend1);
+        User friend2 = new User();
+        friend2.setEmail("friend2@example.com");
+        friend2.setLogin("friend2Login");
+        friend2 = userService.createUser(friend2);
+
+        userService.addFriends(user.getId(), friend1.getId());
+        userService.addFriends(user.getId(), friend2.getId());
+
+        List<User> friends = userService.getFriends(user.getId());
+        assertEquals(2, friends.size());
+    }
+
+    @Test
+    void getMutualFriends_ShouldReturnCommonFriends() {
+        User user1 = userService.createUser(testUser);
+        User user2 = new User();
+        user2.setEmail("user2@example.com");
+        user2.setLogin("user2Login");
+        user2 = userService.createUser(user2);
+        User commonFriend = new User();
+        commonFriend.setEmail("common@example.com");
+        commonFriend.setLogin("commonLogin");
+        commonFriend = userService.createUser(commonFriend);
+
+        userService.addFriends(user1.getId(), commonFriend.getId());
+        userService.addFriends(user2.getId(), commonFriend.getId());
+
+        List<User> mutualFriends = userService.getMutualFriends(user1.getId(), user2.getId());
+        assertEquals(1, mutualFriends.size());
+        assertEquals(commonFriend.getId(), mutualFriends.get(0).getId());
+    }
+
+    @Test
+    void getMutualFriends_ShouldReturnEmptyList_WhenNoCommonFriends() {
+        User user1 = userService.createUser(testUser);
+        User user2 = new User();
+        user2.setEmail("user2@example.com");
+        user2.setLogin("user2Login");
+        user2 = userService.createUser(user2);
+
+        List<User> mutualFriends = userService.getMutualFriends(user1.getId(), user2.getId());
+        assertTrue(mutualFriends.isEmpty());
     }
 }

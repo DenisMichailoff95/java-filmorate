@@ -2,10 +2,11 @@ package ru.yandex.practicum.filmorate;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import ru.yandex.practicum.filmorate.controller.FilmService;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.storage.film.InMemoryFilmStorage;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -18,7 +19,7 @@ class FilmServiceTest {
 
     @BeforeEach
     void setUp() {
-        filmService = new FilmService();
+        filmService = new FilmService(new InMemoryFilmStorage());
 
         testFilm = new Film();
         testFilm.setName("Test Film");
@@ -80,5 +81,76 @@ class FilmServiceTest {
         List<Film> films = filmService.getAllFilms();
 
         assertEquals(2, films.size());
+    }
+
+    // Новые тесты для функциональности лайков
+    @Test
+    void addLike_ShouldAddLikeToFilm() {
+        Film createdFilm = filmService.createFilm(testFilm);
+        filmService.addLike(createdFilm.getId(), 1L);
+
+        assertEquals(1, filmService.getFilmById(createdFilm.getId()).getLikes().size());
+        assertTrue(filmService.getFilmById(createdFilm.getId()).getLikes().contains(1L));
+    }
+
+    @Test
+    void addLike_ShouldThrowException_WhenFilmNotFound() {
+        Long nonExistentFilmId = 999L; // effectively final
+        Long userId = 1L; // effectively final
+        assertThrows(NotFoundException.class, () -> filmService.addLike(nonExistentFilmId, userId));
+    }
+
+    @Test
+    void deleteLike_ShouldRemoveLikeFromFilm() {
+        Film createdFilm = filmService.createFilm(testFilm);
+        filmService.addLike(createdFilm.getId(), 1L);
+        filmService.deleteLike(createdFilm.getId(), 1L);
+
+        assertEquals(0, filmService.getFilmById(createdFilm.getId()).getLikes().size());
+    }
+
+    @Test
+    void deleteLike_ShouldThrowException_WhenLikeNotFound() {
+        Film createdFilm = filmService.createFilm(testFilm);
+        Long filmId = createdFilm.getId(); // effectively final
+        Long userId = 1L; // effectively final
+
+        assertThrows(NotFoundException.class, () -> filmService.deleteLike(filmId, userId));
+    }
+
+    @Test
+    void getPopularFilms_ShouldReturnMostLikedFilms() {
+        Film film1 = filmService.createFilm(testFilm);
+
+        Film film2 = new Film();
+        film2.setName("Film 2");
+        film2.setReleaseDate(LocalDate.of(2001, 1, 1));
+        film2.setDuration(90);
+        Film createdFilm2 = filmService.createFilm(film2); // effectively final
+
+        Long userId1 = 1L; // effectively final
+        Long userId2 = 2L; // effectively final
+
+        filmService.addLike(film1.getId(), userId1);
+        filmService.addLike(film1.getId(), userId2);
+        filmService.addLike(createdFilm2.getId(), userId1);
+
+        List<Film> popularFilms = filmService.getPopularFilms(1);
+        assertEquals(1, popularFilms.size());
+        assertEquals(film1.getId(), popularFilms.get(0).getId());
+    }
+
+    @Test
+    void getPopularFilms_ShouldReturnDefaultCount_WhenCountNotSpecified() {
+        for (int i = 0; i < 15; i++) {
+            Film film = new Film();
+            film.setName("Film " + i);
+            film.setReleaseDate(LocalDate.of(2000 + i, 1, 1));
+            film.setDuration(90 + i);
+            filmService.createFilm(film);
+        }
+
+        List<Film> popularFilms = filmService.getPopularFilms(null);
+        assertEquals(10, popularFilms.size());
     }
 }
