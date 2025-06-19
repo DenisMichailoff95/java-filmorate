@@ -59,7 +59,6 @@ public class FilmController {
         return ResponseEntity.ok().build();
     }
 
-
     @GetMapping("/popular")
     public List<Film> getPopular(@RequestParam(defaultValue = "10") Integer count) {
         log.info("Получение {} самых популярных фильмов", count);

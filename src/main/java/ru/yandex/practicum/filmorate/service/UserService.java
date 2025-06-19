@@ -3,7 +3,6 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
@@ -43,7 +42,7 @@ public class UserService {
 
     public void addFriends(Long userId, Long friendId) {
         User user = userStorage.find(userId);
-        User friend = userStorage.find(friendId); // проверка существования
+        User friend = userStorage.find(friendId);
         user.getFriends().add(friendId);
         friend.getFriends().add(userId);
         userStorage.amend(user);
@@ -53,9 +52,8 @@ public class UserService {
     public void deleteFriends(Long userId, Long friendId) {
         User user = userStorage.find(userId);
         User friend = userStorage.find(friendId);
-        if (!user.getFriends().remove(friendId) || !friend.getFriends().remove(userId)) {
-            throw new NotFoundException("Дружба не найдена");
-        }
+        user.getFriends().remove(friendId);
+        friend.getFriends().remove(userId);
         userStorage.amend(user);
         userStorage.amend(friend);
     }
