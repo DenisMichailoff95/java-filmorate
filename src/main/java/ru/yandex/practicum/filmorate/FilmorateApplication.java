@@ -8,7 +8,5 @@ public class FilmorateApplication {
     public static void main(String[] args) {
         System.setProperty("server.port", "8080");
         SpringApplication.run(FilmorateApplication.class, args);
-
     }
-
 }
