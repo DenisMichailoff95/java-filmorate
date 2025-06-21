@@ -48,6 +48,12 @@ public class InMemoryUserStorage implements UserStorage {
         if (!users.containsKey(user.getId())) {
             throw new NotFoundException(WRONG_ID);
         }
+
+        // Удаляем пользователя из списков друзей всех других пользователей
+        for (User u : users.values()) {
+            u.getFriends().remove(user.getId());
+        }
+
         users.remove(user.getId());
     }
 

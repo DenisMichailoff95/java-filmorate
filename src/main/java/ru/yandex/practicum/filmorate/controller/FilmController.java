@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
+
 import java.util.List;
 
 @Slf4j
@@ -56,6 +57,13 @@ public class FilmController {
         log.info("Удаление лайка у фильма {} от пользователя {}", id, userId);
         filmService.deleteLike(id, userId);
         return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteFilm(@PathVariable Long id) {
+        log.info("Удаление фильма с id: {}", id);
+        filmService.deleteFilm(id);
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/popular")

@@ -167,4 +167,45 @@ class UserServiceTest {
         List<User> mutualFriends = userService.getMutualFriends(user1.getId(), user2.getId());
         assertTrue(mutualFriends.isEmpty());
     }
+
+    @Test
+    void deleteUser_ShouldRemoveUserFromStorage() {
+        User createdUser = userService.createUser(testUser);
+        assertEquals(1, userService.getAllUsers().size());
+
+        userService.deleteUser(createdUser.getId());
+
+        assertEquals(0, userService.getAllUsers().size());
+    }
+
+    @Test
+    void deleteUser_ShouldRemoveUserFromFriendsLists() {
+        User user1 = userService.createUser(testUser);
+        User user2 = new User();
+        user2.setEmail("friend@example.com");
+        user2.setLogin("friendLogin");
+        user2.setBirthday(LocalDate.of(1995, 5, 15));
+        user2 = userService.createUser(user2);
+
+        userService.addFriends(user1.getId(), user2.getId());
+
+        // Проверяем, что дружба установлена в обе стороны
+        assertTrue(userService.getUserById(user1.getId()).getFriends().contains(user2.getId()));
+        assertTrue(userService.getUserById(user2.getId()).getFriends().contains(user1.getId()));
+
+        userService.deleteUser(user1.getId());
+
+        // Проверяем, что user1 удален из друзей user2
+        User remainingUser = userService.getUserById(user2.getId());
+        assertFalse(remainingUser.getFriends().contains(user1.getId()),
+                "Удаленный пользователь должен быть удален из списка друзей");
+
+        // Проверяем, что user1 действительно удален
+        assertThrows(NotFoundException.class, () -> userService.getUserById(user1.getId()));
+    }
+
+    @Test
+    void deleteUser_ShouldThrowException_WhenUserNotFound() {
+        assertThrows(NotFoundException.class, () -> userService.deleteUser(999L));
+    }
 }

@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
+
 import java.util.*;
 
 @Service
@@ -55,6 +56,11 @@ public class UserService {
         friend.getFriends().remove(userId);
         userStorage.amend(user);
         userStorage.amend(friend);
+    }
+
+    public void deleteUser(Long id) {
+        User user = userStorage.find(id);
+        userStorage.delete(user);
     }
 
     public List<User> getFriends(Long userId) {

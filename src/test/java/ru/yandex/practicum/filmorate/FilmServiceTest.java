@@ -154,4 +154,32 @@ class FilmServiceTest {
         List<Film> popularFilms = filmService.getPopularFilms(null);
         assertEquals(10, popularFilms.size());
     }
+
+    @Test
+    void deleteFilm_ShouldRemoveFilmFromStorage() {
+        Film createdFilm = filmService.createFilm(testFilm);
+        assertEquals(1, filmService.getAllFilms().size());
+
+        filmService.deleteFilm(createdFilm.getId());
+
+        assertEquals(0, filmService.getAllFilms().size());
+    }
+
+    @Test
+    void deleteFilm_ShouldRemoveAllLikes() {
+        Film createdFilm = filmService.createFilm(testFilm);
+        filmService.addLike(createdFilm.getId(), 1L);
+        filmService.addLike(createdFilm.getId(), 2L);
+        assertEquals(2, filmService.getFilmById(createdFilm.getId()).getLikes().size());
+
+        filmService.deleteFilm(createdFilm.getId());
+
+        assertThrows(NotFoundException.class, () -> filmService.getFilmById(createdFilm.getId()));
+    }
+
+    @Test
+    void deleteFilm_ShouldThrowException_WhenFilmNotFound() {
+        assertThrows(NotFoundException.class, () -> filmService.deleteFilm(999L));
+    }
+
 }
