@@ -15,6 +15,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Profile("db")
 @Component
@@ -139,7 +140,13 @@ public class FilmDbStorage implements FilmStorage {
     private void updateFilmGenres(Film film) {
         String deleteQuery = "DELETE FROM film_genres WHERE film_id = ?";
         jdbcTemplate.update(deleteQuery, film.getId());
-        insertFilmGenres(film.getId(), film.getGenres());
+
+        // Удаляем дубликаты перед вставкой
+        List<Genre> uniqueGenres = film.getGenres().stream()
+                .distinct()
+                .collect(Collectors.toList());
+
+        insertFilmGenres(film.getId(), uniqueGenres);
     }
 
     private void updateFilmLikes(Film film) {
