@@ -42,26 +42,20 @@ public class UserService {
 
     public void addFriends(Long userId, Long friendId) {
         User user = userStorage.find(userId);
-        User friend = userStorage.find(friendId);
+        userStorage.find(friendId); // Проверка существования друга
 
         user.getFriends().add(friendId);
-        friend.getFriends().add(userId); // Двусторонняя дружба
-
         userStorage.amend(user);
-        userStorage.amend(friend);
 
         log.info("Пользователь {} добавил в друзья пользователя {}", userId, friendId);
     }
 
     public void deleteFriends(Long userId, Long friendId) {
         User user = userStorage.find(userId);
-        User friend = userStorage.find(friendId);
+        userStorage.find(friendId); // Проверка существования друга
 
         user.getFriends().remove(friendId);
-        friend.getFriends().remove(userId); // Двустороннее удаление
-
         userStorage.amend(user);
-        userStorage.amend(friend);
 
         log.info("Пользователь {} удалил из друзей пользователя {}", userId, friendId);
     }

@@ -109,24 +109,18 @@ public class UserDbStorage implements UserStorage {
     }
 
     private Set<Long> getFriends(Long userId) {
-        String sqlQuery = "SELECT friend_id FROM friendships WHERE user_id = ? AND status = 'confirmed' " +
-                "UNION " +
-                "SELECT user_id FROM friendships WHERE friend_id = ? AND status = 'confirmed'";
-        return new HashSet<>(jdbcTemplate.queryForList(sqlQuery, Long.class, userId, userId));
+        String sqlQuery = "SELECT friend_id FROM friendships WHERE user_id = ?";
+        return new HashSet<>(jdbcTemplate.queryForList(sqlQuery, Long.class, userId));
     }
 
     private void updateFriendships(User user) {
-        String deleteQuery = "DELETE FROM friendships WHERE user_id = ? OR friend_id = ?";
-        jdbcTemplate.update(deleteQuery, user.getId(), user.getId());
+        String deleteQuery = "DELETE FROM friendships WHERE user_id = ?";
+        jdbcTemplate.update(deleteQuery, user.getId());
 
         if (user.getFriends() != null && !user.getFriends().isEmpty()) {
             String insertQuery = "INSERT INTO friendships (user_id, friend_id, status) VALUES (?, ?, ?)";
             user.getFriends().forEach(friendId -> {
-                if (user.getId() < friendId) {
-                    jdbcTemplate.update(insertQuery, user.getId(), friendId, "confirmed");
-                } else {
-                    jdbcTemplate.update(insertQuery, friendId, user.getId(), "confirmed");
-                }
+                jdbcTemplate.update(insertQuery, user.getId(), friendId, "pending");
             });
         }
     }

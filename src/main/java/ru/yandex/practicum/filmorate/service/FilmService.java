@@ -45,6 +45,8 @@ public class FilmService {
 
     public Film updateFilm(Film film) {
         validateFilm(film);
+        validateMpa(film.getMpa());
+        validateGenres(film.getGenres());
         return filmStorage.amend(film);
     }
 
@@ -97,13 +99,12 @@ public class FilmService {
         try {
             mpaService.getMpaRatingById(mpa.getId());
         } catch (NotFoundException e) {
-            throw new ValidationException("Указан несуществующий MPA рейтинг");
+            throw new NotFoundException("Указан несуществующий MPA рейтинг");
         }
     }
 
     private void validateGenres(List<Genre> genres) {
         if (genres != null) {
-            // Удаляем дубликаты жанров
             List<Genre> uniqueGenres = genres.stream()
                     .distinct()
                     .collect(Collectors.toList());
@@ -115,7 +116,7 @@ public class FilmService {
                 try {
                     genreService.getGenreById(genre.getId());
                 } catch (NotFoundException e) {
-                    throw new ValidationException("Указан несуществующий жанр с id " + genre.getId());
+                    throw new NotFoundException("Указан несуществующий жанр с id " + genre.getId());
                 }
             }
         }
