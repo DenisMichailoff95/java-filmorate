@@ -2,8 +2,11 @@ package ru.yandex.practicum.filmorate.model;
 
 import jakarta.validation.constraints.*;
 import lombok.Data;
+
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Data
@@ -23,4 +26,17 @@ public class Film {
     private Integer duration;
 
     private Set<Long> likes = new HashSet<>();
+
+    private List<Genre> genres = new ArrayList<>();
+    private MpaRating mpa;
+
+    public void addLike(Long userId) {
+        likes.add(userId);
+    }
+
+    public void removeLike(Long userId) {
+        likes.remove(userId);
+    }
 }
+
+

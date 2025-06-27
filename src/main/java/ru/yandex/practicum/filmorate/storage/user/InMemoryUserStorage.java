@@ -1,11 +1,13 @@
 package ru.yandex.practicum.filmorate.storage.user;
 
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Profile("memory")
 @Component
 public class InMemoryUserStorage implements UserStorage {
     private final HashMap<Long, User> users = new HashMap<>();
